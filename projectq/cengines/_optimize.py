@@ -16,7 +16,8 @@ Contains a local optimizer engine.
 
 from copy import deepcopy as _deepcopy
 from projectq.cengines import LastEngineException, BasicEngine
-from projectq.ops import FlushGate, FastForwardingGate, NotMergeable
+from projectq.ops import FlushGate, FastForwardingGate, NotMergeable, H, CNOT, X, Command
+import projectq.ops
 
 
 class LocalOptimizer(BasicEngine):
@@ -151,6 +152,38 @@ class LocalOptimizer(BasicEngine):
                     i = 0
                     limit -= 2
                     continue
+
+            # simple example - figure 10 in circuit equivalence paper
+            if i < limit - 2:
+                cmd1 = self._l[idx][i]
+                cmd2 = self._l[idx][i+1]
+                cmd3 = self._l[idx][i+2]
+                if cmd1.gate == H and cmd2.gate == X and cmd3.gate == H:
+                    controlQubits = cmd2.control_qubits
+                    targetQubits = cmd2.qubits
+                    if (len(controlQubits) == 1 and controlQubits[0].id == idx and len(targetQubits) == 1):
+                        idx2 = targetQubits[0][0].id
+                        qubitids = [qb.id for sublist in self._l[idx][i].all_qubits
+                            for qb in sublist]
+                        indices = self._get_gate_indices(idx, i+1, qubitids)
+                        j = indices[0]
+                        if (len(self._l[idx2]) > j+1  and j > 0):
+                            cmda = self._l[idx2][j-1]
+                            cmdb = self._l[idx2][j+1]
+                            if (cmda.gate == H and cmdb.gate == H):
+                                # Erase the 4 H and flip the target and control of the cnot
+                                newgate = cmd2.flip_control_target()
+                                new_list = (self._l[idx][0:i] + [newgate] + 
+                                    self._l[idx][i + 4:])
+                                self._l[idx] = new_list
+                                new_list2 = (self._l[idx2][0:j-1] + [newgate] + 
+                                    self._l[idx2][j + 3:])
+                                self._l[idx2] = new_list2
+
+                                i = 0
+                                limit -= 2
+                                continue
+
 
             # gates are not each other's inverses --> check if they're
             # mergeable

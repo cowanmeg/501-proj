@@ -168,6 +168,25 @@ class Command(object):
                            deepcopy(self.tags))
         raise projectq.ops.NotMergeable("Commands not mergeable.")
 
+    def flip_control_target(self):
+        """
+        Flips the control and target qubits
+
+        Raises:
+            TODO change name of exception
+            NotMergable: if this is not a controlled gate
+        """
+        if (len(self.control_qubits) == 1):
+            newControl = self.qubits[0]
+            newTarget = tuple([self.control_qubits])
+            print(newTarget, newControl)
+            return Command(self.engine,
+                           self.gate,
+                           newTarget,
+                           newControl,
+                           deepcopy(self.tags))
+        raise projectq.ops.NotMergeable("Commands not mergeable.")
+
     def _order_qubits(self, qubits):
         """
         Order the given qubits according to their IDs (for unique comparison of

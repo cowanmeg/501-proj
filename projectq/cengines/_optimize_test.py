@@ -125,3 +125,28 @@ def test_local_optimizer_mergeable_gates():
     # Expect allocate, one Rx gate, and flush gate
     assert len(backend.received_commands) == 3
     assert backend.received_commands[1].gate == Rx(10 * 0.5)
+
+def test_cnot_merge():
+    local_optimizer = _optimize.LocalOptimizer(m=4)
+    backend = DummyEngine(save_commands=True)
+    eng = MainEngine(backend=backend, engine_list=[local_optimizer])
+
+    q0 = eng.allocate_qubit()
+    q1 = eng.allocate_qubit()
+    H | q0
+    H | q1
+    CNOT | (q0, q1)
+    H | q0
+    H | q1
+    eng.flush()
+
+    received_commands = []
+    for cmd in backend.received_commands:
+        if not (isinstance(cmd.gate, FastForwardingGate) or
+                isinstance(cmd.gate, ClassicalInstructionGate)):
+            received_commands.append(cmd)
+    assert len(received_commands) == 1
+    c = received_commands[0]
+    assert(c.gate == X)
+    assert(c.qubits[0][0].id == 0)
+    assert(c.control_qubits[0].id == 1)
