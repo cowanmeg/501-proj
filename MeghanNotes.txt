@@ -1,1 +1,6 @@
 Run programs with python3.5
+	- python3.5 examples/shor.py
+
+Run unit tests with pytest - (run all tests in lower levels, or a specific file)
+	- python3.5 -m pytest 
+	- python3.5 -m pytest _optimize_test.py 
