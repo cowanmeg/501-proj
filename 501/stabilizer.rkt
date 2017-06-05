@@ -103,37 +103,42 @@
 (print-forms binding)
 
 
-;;;;; Attempting to symbolify gates ;;;;;;;
+;;;;; Synthesizing Equivalent Circuits ;;;;;;;
+; Gate = id and procedure
 (struct gate (id proc)
   #:transparent
   #:property prop:procedure
   (struct-field-index proc)
   )
 
+
+; Number of qubit inputs to a gate
 (define (gate-arity gate)
   (match (procedure-arity gate)
     [(? integer? a) (- a 2)]
     [_ 2]))
 
+
+; Instruction =  gate + inputs
 (struct inst (gate in)
   #:transparent
   )
 
-; Symbolic instruction - might be able to just use procedure-arity here
+; Symbolic instruction
 (define (inst* gate)
   (define (qubit-id*)
     (define-symbolic* q integer?)
     q)
   (inst gate (for/list ([i (gate-arity gate)]) (qubit-id*))))
 
-; wrappers for gate procedure
-(define s (gate 0 S))
-(define h(gate 1 H))
-(define cnot (gate 2 CNOT))
+; Clifford gates - don't really need the id...
+(define s (gate "phase" S))
+(define h(gate "hadamard" H))
+(define cnot (gate "cnot" CNOT))
  
-; Hardcoded for identity3 for now
+; 
 (define (select-inst l goal n identity-matrix)
-  (define (todo i circuit)
+  (define (apply-instruction i circuit)
     (assert (and (>= i 0) (< i 3)))
     (define inst (case i
                    [(0) (inst* s)]
@@ -144,12 +149,8 @@
     (apply gate args))
       
   ;(foldl todo identity-matrix l)
-  (assert (equivalent goal (foldl todo identity-matrix l))))
+  (assert (equivalent goal (foldl apply-instruction identity-matrix l))))
 
-
-;;(define ll (list (inst h (list 0 3))))
-;;(apply-insts ll)
-    
   
 ; Synthesize a simpler circuit for this
 
@@ -169,6 +170,7 @@
   (optimize #:minimize (list n)
               #:guarantee (synth-3)))
 (print binding2)
+(print-forms binding2)
 
 
 
