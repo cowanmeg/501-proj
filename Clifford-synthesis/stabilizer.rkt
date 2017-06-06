@@ -109,7 +109,9 @@
   #:transparent
   #:property prop:procedure
   (struct-field-index proc)
-  )
+  #:methods gen:custom-write
+  [(define (write-proc self port mode) 
+     (fprintf port "~a" (gate-id self)))])
 
 
 ; Number of qubit inputs to a gate
@@ -122,7 +124,10 @@
 ; Instruction =  gate + inputs
 (struct inst (gate in)
   #:transparent
-  )
+  #:methods gen:custom-write
+  [(define (write-proc self port mode)
+     (fprintf port "~a" 
+              `(,(inst-gate self) ,@(inst-in self))))])
 
 ; Symbolic instruction
 (define (inst* gate)
@@ -130,6 +135,7 @@
     (define-symbolic* q integer?)
     q)
   (inst gate (for/list ([i (gate-arity gate)]) (qubit-id*))))
+  
 
 ; Clifford gates - don't really need the id...
 (define s (gate "phase" S))
@@ -137,40 +143,39 @@
 (define cnot (gate "cnot" CNOT))
  
 ; 
-(define (select-inst l goal n identity-matrix)
-  (define (apply-instruction i circuit)
-    (assert (and (>= i 0) (< i 3)))
-    (define inst (case i
-                   [(0) (inst* s)]
-                   [(1) (inst* h)]
-                   [(2) (inst* cnot)]))
+(define (select-inst prgm goal n identity-matrix)
+  (define (apply-instruction inst circuit)
     (define gate (gate-proc (inst-gate inst)))
     (define args (append (inst-in inst) (list n circuit)))
     (apply gate args))
-      
-  ;(foldl todo identity-matrix l)
-  (assert (equivalent goal (foldl apply-instruction identity-matrix l))))
+
+  (assert (equivalent goal (foldl apply-instruction identity-matrix prgm))))
 
   
 ; Synthesize a simpler circuit for this
 
-(define-symbolic a x y z n integer?)
-(define xs (take (list a x y z) n))
-;(displayln xs)
+(define (sym-inst i)
+  (case i
+    [(0) (inst* s)]
+    [(1) (inst* h)]
+    [(2) (inst* cnot)]))
+
+
+(define-symbolic a b c d n integer?)
+(define prgm (take (list (sym-inst a) (sym-inst b) (sym-inst c) (sym-inst d)) n))
 (define (synth-2)
   (define cnot-3 (CNOT 0 1 3 (CNOT 1 2 3 (CNOT 0 2 3 identity3))))
-  (select-inst xs cnot-3 3 identity3))
+  (select-inst prgm cnot-3 3 identity3))
 
 (define (synth-3)
   (define cnot-4-h (H 0 2(H 1 2(CNOT 0 1 2 (H 1 2(H 0 2 identity2))))))
-  (select-inst xs cnot-4-h 2 identity2))
+  (select-inst prgm cnot-4-h 2 identity2))
 
 (define binding2
   ;(synthesize #:forall (list)
   (optimize #:minimize (list n)
-              #:guarantee (synth-3)))
-(print binding2)
-(print-forms binding2)
+              #:guarantee (synth-2)))
+(evaluate prgm binding2)
 
 
 
