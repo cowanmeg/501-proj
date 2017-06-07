@@ -43,22 +43,34 @@ def apply(gate, q):
 
 
 if __name__ == "__main__":
-	print zero
-	print x
-	print i
-	print H(zero)
-	print np.dot(y, zero)
-	q = Tensor(zero, one)
-	print apply(cnot, q)
-	print(np.kron(x, i))
-	print(np.kron(i,x))
+	# print zero
+	# print x
+	# print i
+	# print H(zero)
+	# print np.dot(y, zero)
+	# q = Tensor(zero, one)
+	# print apply(cnot, q)
+	# print(np.kron(x, i))
+	# print(np.kron(i,x))
 
-	original_gates = [np.kron(hadamard, i), np.kron(i, hadamard), cnot, np.kron(hadamard, i),  np.kron(i, hadamard)]
-	original = reduce(np.dot, original_gates, np.kron(i, i))
-	optimized = revcnot
-	print "original"
-	print original
-	print "optimized"
-	print optimized
-	print np.kron(i, i)
+	# original_gates = [np.kron(hadamard, i), np.kron(i, hadamard), cnot, np.kron(hadamard, i),  np.kron(i, hadamard)]
+	# original = reduce(np.dot, original_gates, np.kron(i, i))
+	# optimized = revcnot
+	# print "original"
+	# print original
+	# print "optimized"
+	# print optimized
+	# print np.kron(i, i)
+	# print [np.kron(phase, i)]
+	# print [np.kron(i, hadamard)]
+	print "xx", np.dot(x,x)
+	print "xy", np.dot(x,y)
+	print "xz", np.dot(x, z)
 
+	print "yx", np.dot(y,x)
+	print "yy", np.dot(y,y)
+	print "yz", np.dot(y, z)
+
+	print "zx", np.dot(z,x)
+	print "zy", np.dot(z,y)
+	print "zz", np.dot(z, z)
