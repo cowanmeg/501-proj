@@ -81,25 +81,6 @@
   (define c2 (CNOT 0 1 3 (CNOT 1 2 3 (CNOT 0 2 3 identity3))))
   (assert (equivalent c1 c2)))
 
-;;;;;;;;;;;
-
-
-
-; Synthesize inputs to gates 
-(define-symbolic s1 s2 s3 s4 integer?)
-(define (synth-1)
-  ; (define c1 (CNOT 1 2 3 (CNOT 0 1 3 identity3)))
-  (define c1 (CNOT s1 s2 3 (CNOT s3 s4 3 identity3)))
-  (define c2 (CNOT 0 1 3 (CNOT 1 2 3 (CNOT 0 2 3 identity3))))
-  (assert (equivalent c1 c2)))
-
-
-;(define binding
-;  (synthesize #:forall (list)
-;              #:guarantee (synth-1)))
-;(print binding)
-;(print-forms binding)
-
 
 ;;;;; Synthesizing Equivalent Circuits ;;;;;;;
 ; Gate = id and procedure
@@ -155,7 +136,9 @@
 ; Given a prgm - list of (potentially symbolic) instructions
 ;     goal - bv that want transformation to be equivalent to
 ;     n, identity-matrix: number of qubits in circuit + its starting empty circuit
-; Determines if they prgm results in the goal matrix 
+; Determines if they prgm results in the goal matrix
+
+
 (define (select-inst prgm goal n identity-matrix)
   (define (apply-instruction inst circuit)
     (define gate (gate-proc (inst-gate inst)))
@@ -166,13 +149,31 @@
 
 
 
-(define (synth-2 prgm)
-  (define cnot-3 (CNOT 0 1 3 (CNOT 1 2 3 (CNOT 0 2 3 identity3))))
-  (select-inst prgm cnot-3 3 identity3))
+(define (find-optimal circuit size identity-matrix)
+  (define-symbolic* a1 a2 a3 a4 a5 n integer?)
+  (define prgm (take (list (sym-inst a1) (sym-inst a2) (sym-inst a3) (sym-inst a4)
+                         (sym-inst a5)) n))
+  
+  (define binding
+    (optimize #:minimize (list n)
+              #:guarantee (select-inst prgm circuit size identity-matrix)))
+  (evaluate prgm binding))
 
-(define (synth-3 prgm)
+;;;;;;; Simple Tests ;;;;;;;;;;
+
+
+;(define (synth-1)
+  (define cnot-3 (CNOT 0 1 3 (CNOT 1 2 3 (CNOT 0 2 3 identity3))))
+  ;(select-inst prgm cnot-3 3 identity3))
+
+;(define (synth-2)
   (define cnot-4-h (H 0 2(H 1 2(CNOT 0 1 2 (H 1 2(H 0 2 identity2))))))
-  (select-inst prgm cnot-4-h 2 identity2))
+  ;(select-inst prgm cnot-4-h 2 identity2))
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (synth-1-qubit x prgm)
   (select-inst prgm (bv x 4) 1 identity1))
@@ -215,7 +216,5 @@
   ))
 
 ;(map run-1 (for/list ([i 16]) i))
-(map run (for/list ([x (in-range 300 700)]) x))
-
-
-
+;33825
+;(map run (for/list ([x (in-range 33000 33200)]) x))

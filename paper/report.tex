@@ -29,16 +29,55 @@ University of Washington \\
 \vspace{1ex}\noindent
 
 \section{Introduction}
-
+ - need to introduce the problem here
+ - .peephole optimizer for quantum circuits
+ - focus on clifford gates because they can be efficiently simulated
+ - code in a couple of optimizations into projectq
+ - use rosette to synthesize a superoptimizer for clifford gates
+ - WHAT TO TEST ON>!>!>!>!>!>!
 
 \section{Background}
+\subsection{Quantum Computing}
+\subsection{Efficient Clifford Circuit Simulation}
+The Gottesman-Knill theorem proves that stabilizer circuits can be efficiently simulated on classical computers. Stabilizer circuits are quantum circuit that contain only the Hadamard, phase, controlled-NOT gates, and single qubit measurements. If a stabilizer circuit contains no measurement gates it is a Clifford group circuit or unitary [aaronson]. Since we focus on generating optimal clifford circuits, information related to measurement is omitted and we focus on how to efficient encode clifford circuits and manipulate that encoding rather than how to simulate it.\\
+
+- Introduction to quantum
+  - what is a qubit superposition and measurement collapses the state
+  - quantum gates: universal set  = {}
+  - quantum compilation/frameworks: use projectq as an example but mention that many have proposed this style
+    take an arbitrary algorithm break it down into the universal set
+    kind of hard problem solvay kitaev theorem
+  - mention the different stages of doing optimiztios
+  - point out what it is that we focus on 
+
+  - subsection: simulation
+  intractable problem for the general case - complexity
+  simply simulate the affects of the unitary - matrix multiplication on the quantum state
+  - instead we focus on a the clifford gates which are shown to be simple to simulate
+  - show the algorithm here and an example of how to manipulate it
 
 
 \section{Synthesis of Cliffords}
+- Restrict the problem: clifford circuits with no measurement
+  - not including adding extra ancilla
 
+- probably include why they are optimal here
+- what it can do
+- describe using rosettte
+
+- peephole optimizer in projectq supports a variable sized sliding window
+
+\section{Evaluation}
+The number of n-qubit clifford circuits 
 
 \section{Related Work}
+Generating optimal quantum circuits has been studied for both general and clifford circuits as well as another efficiently simulated reversible gate subset. For instance Kliuchnikov and Maslov [cite] use breadth first search to generate unique Clifford unitaries <need to talk about storage>
 
+and apply a variety of techniques to reduce the size of the search space. The two main techniques they imploy are input-output reordering and meet-in-the middle. 
+Using this algorithm they are able to compute optimal clifford ciruits for up to 4 qubits and efficient five qubit clifford unitaries. It is worth noting the maximum number of gates needed to implement any five qubit clifford unitary is unknown so it is unclear what depth to stop at.
+- Matthey Amy's 
+   meeet in the middle technique.
+- Vladium kluchinokov
 
 \section{Conclusion and Future Work}
 
